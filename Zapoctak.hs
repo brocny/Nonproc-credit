@@ -45,20 +45,12 @@ safeHead x
 	
 transferFlowFromSource :: (Num a, Ord a) => Graph a -> Graph a
 transferFlowFromSource gr = foldr (\e g -> push g e) gr (edgesFromSource gr)
-     
-{-
-nodesConnectedToSource :: (Num a, Ord a) => Graph a -> [Int]
-nodesConnectedToSource gr = map (\e -> unJust $ numToNode (nodes gr) (to e)) (edgesFromSource gr)
-
-nodesConnectedToNode :: Graph a -> Node a -> [Node a]
-nodesConnectedToNode gr n = map to (edgesFromNode gr n)
--}
 
 edgesFromSource :: Graph a -> [Edge a]
-edgesFromSource (Graph sr sn ns es) = filter (\e -> (num $ from $ e) == (num sr)) es
+edgesFromSource (Graph sr sn ns es) = filter (\e -> (from $ e) == (num sr)) es
 
 edgesFromNode :: Graph a -> Node a -> [Edge a]
-edgesFromNode (Graph _ _ ns es) (Node n _ _) = filter (\e -> (num $ from $ e) == n) es
+edgesFromNode (Graph _ _ ns es) (Node n _ _) = filter (\e -> (from $ e) == n) es
 
 {-
 addReverseEdges :: (Num a) => [Edge a] -> [Edge a]
@@ -81,10 +73,10 @@ push (Graph source sink nodes edges) edge@(Edge f t c r) = Graph source sink (((
 	-}
 	
 push :: (Num a, Ord a) => Graph a -> Edge a -> Graph a
-push (Graph source sink nodes edges) edge@(Edge f t c r) = Graph source sink (((Node n1 h1 (e1 - delta))) : (Node n2 h2  (e2 + delta)) : [n | n <- nodes, num n /= n1 && num n /= n2]) ((Edge f t c (r - delta)):(filter (\e -> (num $ from $ e) /= n1 ||(num $ to $ e) /= n2) edges))
-    where (delta, n1, h1, e1, n2, h2, e2) = ((min (excess f) (reserve edge)), num f, height f, excess f, num t, height t, excess t)
+push (Graph source sink ns es) edge@(Edge f t c r) = Graph source sink (((Node f (height nd1) ((excess nd1) - delta))) : (Node t (height nd1)  ((excess nd2) + delta)) : [n | n <- ns, num n /= t && num n /= f]) ((Edge f t c (r - delta)):(filter (\e -> (from e) /= f ||(to e) /= t) es))
+    where (delta, nd1, nd2) = ((min (excess nd1) (reserve edge)), unJust (numToNode ns f), unJust (numToNode ns t))
 	
 	
 --For testing
 edgeInfo :: Edge a -> (Int, Int, a, a)
-edgeInfo (Edge t f e r) = (num t,num f,e,r)
+edgeInfo (Edge t f e r) = (t,f,e,r)
